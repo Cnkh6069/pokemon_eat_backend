@@ -1,0 +1,32 @@
+1. Project Case: 
+- Pokemon Eat: Food Review App: Application to record food places visited by a user and for the user to leave ratings.
+  - Features to include: 
+    - Auth0 login to record users
+    - One landing page for user to search for restaurants by (Geography (N,S,E,W), Cuisine and Rating) 
+      - [READ and Filter function, Pagination Sorting]
+      - Map of Restaurants
+      - Users can search/create new restaurants if they are not able to find the restaurant (READ / CREATE) 
+    - On the Specific Restaurant page, User is able to 
+      - (1) Read all the reviews for that Restaurant [READ] and 
+      - (2) leave a review [CREATE/UPDATE/DELETE]
+      - Upon submitting a review, Users can collect Pokemons and accumulate levels for the amount of reviews they give or the places they have visited.
+    - User can view and update their own profile [READ / CREATE/ UPDATE/ DELETE] 
+    - In terms of ERD (User, Restaurants, Reviews, Pokemons )
+2. User Story: 
+- For people wanting to track the food places that they have visited, review the food places and look at other people's reviews. 
+  - User to login via Auth0 access their profile page
+    - Users can view and update their particulars
+    - Users can access their pokemon collection 
+  - Users can search for restaurants on a Restaurant Page
+  - On the Restaurant Index Page, Users can see Restaurant
+    - Address
+    - Rating
+    - Reviews
+    - Users can submit a review to the restaurant.
+  - Upon successfully submitting a review, they will be randomly issued a pokemon as a collection badge.
+- For each new place they go to, User will be given a pokemon sprite to collect. The intent is to encourage users to travel across the island to visit food places and to give reviews. If they have been to this place more than 5 times, then the pokemon will change to Shiny.
+
+
+Requirements
+- Mysql database
+- creating a .env file for storing your passwords and email credentials.
