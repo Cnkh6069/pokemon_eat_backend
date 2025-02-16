@@ -57,8 +57,14 @@ app.post("/api/signup", async (req, res) => {
 //importing routes for backend queries to database
 
 const userRoutes = require("./routes/userRoutes.js");
+const pokemonsRoutes = require("./routes/pokemonsRoutes.js");
+const reviewRoutes = require("./routes/reviewRoutes.js");
+const restaurantRoutes = require("./routes/restaurantRoutes.js");
 
 app.use("/users", userRoutes);
+app.use("/pokemons", pokemonsRoutes);
+app.use("/reviews", reviewRoutes);
+app.use("/restaurant", restaurantRoutes);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
