@@ -31,18 +31,34 @@ const getUserReviews = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch user reviews" });
   }
 };
-
+// Search for User by Auth0 ID
+const getUserByAuth0Id = async (req, res) => {
+  try {
+      const { auth0Id } = req.params;
+      const user = await User.findOne({ 
+          where: { auth0Id }
+      });
+      if (user) {
+          res.status(200).json(user);
+      } else {
+          res.status(404).json({ error: "User not found" });
+      }
+  } catch (error) {
+      console.error('Error finding user:', error);
+      res.status(500).json({ error: 'Failed to find user' });
+  }
+};
 //update a User profile with a transaction
 const updateUserById = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
     const { id } = req.params;
-    const { userName, firstName, lastName, email } = req.body;
-    const [update] = await User.updated(
-      { userName, firstName, lastName, email },
+    const { userName, firstName, lastName, email, auth0Id } = req.body;
+    const [update] = await User.update(
+      { userName, firstName, lastName, email,auth0Id },
       { where: { id }, transaction }
     );
-    if (updated) {
+    if (update) {
       const updatedUser = await User.findByPk(id, { transaction });
       await transaction.commit();
       res.status(200).json(updatedUser);
@@ -94,4 +110,42 @@ const deleteUserPokemon = async (req, res) => {
     res.status(500).json({ error: "Failed to delete pokemon from collection" });
   }
 };
-module.exports = { getUserById, updateUserById, getUserReviews,getUserPokemons,deleteUserPokemon };
+const createUser = async (req, res) => {
+  try {
+    const { auth0Id, userName, firstName, lastName, email } = req.body;
+    
+    // Validate required fields
+    if (!auth0Id || !userName || !email) {
+      return res.status(400).json({ 
+        error: 'Missing required fields' 
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ 
+      where: { auth0Id } 
+    });
+
+    if (existingUser) {
+      return res.status(409).json({ 
+        error: 'User already exists' 
+      });
+    }
+
+    const newUser = await User.create({
+      auth0Id,
+      userName,
+      firstName: firstName || null,
+      lastName: lastName || null,
+      email
+    });
+
+    res.status(201).json(newUser);
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to create user' 
+    });
+  }
+};
+module.exports = { getUserById, updateUserById, getUserReviews,getUserPokemons,deleteUserPokemon,createUser, getUserByAuth0Id };

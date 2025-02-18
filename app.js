@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+// Import User model at the top with other imports
+const { User } = require("./models");
 
 //importing packages for Auth0, registration and sending email
 const bodyParser = require("body-parser");
@@ -27,12 +29,22 @@ const transporter = nodemailer.createTransport({
 });
 // Auth0 Signup Route
 app.post("/api/signup", async (req, res) => {
-  const { email, name } = req.body;
+  const { email, name, auth0Id } = req.body;
 
-  if (!email || !name) {
+  if (!email || !name || !auth0Id) {
     return res.status(400).json({ error: "Email and Name are required" });
   }
+  try {
+    // Check if user already exists
+    const existingUser = await User.findOne({ 
+      where: { auth0Id } 
+    });
 
+    if (existingUser) {
+      return res.status(200).json({ message: "User already registered" });
+    }
+
+    // If user doesn't exist, send welcome email
   const mailOptions = {
     from: `"Pokemon Eats" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -51,8 +63,12 @@ app.post("/api/signup", async (req, res) => {
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).json({ error: "Failed to send welcome email" });
+  }} catch (error) {
+    console.error("Error registering user:", error);
+    res.status(500).json({ error: "Failed to register user" });
   }
 });
+  
 
 //importing routes for backend queries to database
 
