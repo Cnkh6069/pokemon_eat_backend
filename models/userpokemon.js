@@ -10,12 +10,32 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      UserPokemon.belongsTo(models.User, {
+        foreignKey: 'userId',
+        targetKey: 'auth0Id'
+      });
+      UserPokemon.belongsTo(models.Pokemon, {
+        foreignKey: 'pokemonId'
+      });
     }
   }
   UserPokemon.init({
-    userId: DataTypes.INTEGER,
-    pokemonId: DataTypes.INTEGER
+    userId: {
+      type: DataTypes.STRING, 
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'auth0Id'
+      }
+    },
+    pokemonId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Pokemons',
+        key: 'id'
+      }
+    }
   }, {
     sequelize,
     modelName: 'UserPokemon',

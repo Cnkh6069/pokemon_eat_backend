@@ -24,7 +24,7 @@ const getPaginatedReviews = async (req, res) => {
     const { count, rows } = await Review.findAndCountAll({
       where: {
         restaurantId: restaurantId, // Filter by restaurant ID
-      },
+      },include: [{model:User, attributes:['userName','auth0Id']}],
       limit,
       offset,
       order: [["createdAt", "DESC"]], // sort by newest first
@@ -155,10 +155,108 @@ const updateReview = async (req, res) => {
   }
 };
 
+// create review for restaurant id
+const createRestaurantReview = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const { rating, userReview, userId } = req.body;
+   
+    // Validate required fields
+    if (!userReview || !rating || !userId) {
+      return res.status(400).json({ error: "Rating, userReview and userId are required" });
+    }
+
+    // Validate rating
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Rating must be between 1 and 5" });
+    }
+
+    // Start transaction
+    const result = await sequelize.transaction(async (t) => {
+      // Check for recent reviews
+      const recentReview = await Review.findOne({
+        where: {
+          userId,
+          restaurantId,
+          createdAt: {
+            [Op.gte]: new Date(new Date() - 24 * 60 * 60 * 1000)
+          }
+        },
+        transaction: t
+      });
+
+      if (recentReview) {
+        throw new Error('You can only review a restaurant once every 24 hours');
+      }
+
+      // Create the review
+      const newReview = await Review.create({
+        userId,
+        userReview: userReview,
+        restaurantId: parseInt(restaurantId),
+        rating
+      }, { transaction: t });
+
+      // Get random Pokemon
+      const randomPokemon = await Pokemon.findOne({
+        order: sequelize.random(),
+        transaction: t
+      });
+
+      // Add Pokemon to user's collection
+      await UserPokemon.create({
+        userId,
+        pokemonId: randomPokemon.id
+      }, { transaction: t });
+
+      return { review: newReview, pokemon: randomPokemon };
+    });
+
+    res.status(201).json({
+      message: "Review created successfully",
+      review: result.review,
+      rewardedPokemon: result.pokemon
+    });
+  } catch (error) {
+    console.error("Error creating review:", error);
+    if (error.message === 'You can only review a restaurant once every 24 hours') {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Failed to create review" });
+    }
+  }
+};
+//Find all the reviews under one userID
+const getReviewsByAuth0Id = async (req, res) => {
+  try {
+    const { auth0Id } = req.params;
+    
+    // Find user's reviews including restaurant details
+    const reviews = await Review.findAll({
+      include: [
+        { 
+          model: Restaurant,
+          attributes: ['id', 'name']
+        }
+      ],
+      where: {
+        userId: auth0Id
+      },
+      order: [['createdAt', 'DESC']]
+    });
+
+    console.log('Found reviews:', reviews); // Debug log
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error('Error fetching user reviews:', error);
+    res.status(500).json({ error: 'Failed to fetch user reviews' });
+  }
+};
+
 module.exports = {
   getAllReviews,
   getPaginatedReviews,
   createReview,
   deleteReview,
-  updateReview
+  updateReview, createRestaurantReview, getReviewsByAuth0Id
 };

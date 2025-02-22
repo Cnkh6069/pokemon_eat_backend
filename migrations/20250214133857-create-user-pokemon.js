@@ -10,16 +10,16 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       userId: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         references: {
           model: 'Users',
-          key: 'id'
+          key: 'auth0Id'
         },
         onDelete: 'CASCADE'
       },
       pokemonId: {
         type: Sequelize.INTEGER,
-        eferences: {
+        references: {
           model: 'Pokemons',
           key: 'id'
         },

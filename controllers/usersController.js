@@ -1,5 +1,5 @@
 // UsersController
-const { User, sequelize, UserPokemon } = require("../models");
+const { User, sequelize, UserPokemon, Pokemon,Review, Restaurant } = require("../models");
 
 // search for user by ID
 const getUserById = async (req, res) => {
@@ -20,11 +20,22 @@ const getUserById = async (req, res) => {
 const getUserReviews = async (req, res) => {
   try {
     const { userId } = req.params;
+    // First find the user by auth0Id
+    const user = await User.findOne({
+      where: { auth0Id: userId }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Then find reviews using the user's database ID
     const reviews = await Review.findAll({
-      where: { userId },
-      include: [{ model: Restaurant }],
+      where: { userId: user.id },
+      include: [{ model: Restaurant , attributes: ['id','name']}],
       order: [['createdAt', 'DESC']]
     });
+    console.log('Reviews found:', reviews); // Debug log
     res.status(200).json(reviews);
   } catch (error) {
     console.error("Error fetching user reviews:", error);
@@ -148,4 +159,43 @@ const createUser = async (req, res) => {
     });
   }
 };
-module.exports = { getUserById, updateUserById, getUserReviews,getUserPokemons,deleteUserPokemon,createUser, getUserByAuth0Id };
+
+const assignPokemonToUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { pokemonId } = req.body;
+
+    // Validate required fields
+    if (!userId || !pokemonId) {
+      return res.status(400).json({ error: 'User ID and Pokemon ID are required' });
+    }
+
+    // Check if user already has this pokemon
+    const existingPokemon = await UserPokemon.findOne({
+      where: {
+        userId,
+        pokemonId
+      }
+    });
+
+    if (existingPokemon) {
+      return res.status(409).json({ error: 'User already has this Pokemon' });
+    }
+
+    // Create new user-pokemon relationship
+    const newUserPokemon = await UserPokemon.create({
+      userId,
+      pokemonId
+    });
+
+    res.status(201).json({
+      message: 'Pokemon assigned successfully',
+      data: newUserPokemon
+    });
+
+  } catch (error) {
+    console.error('Error assigning Pokemon:', error);
+    res.status(500).json({ error: 'Failed to assign Pokemon to user' });
+  }
+};
+module.exports = { getUserById, updateUserById, getUserReviews,getUserPokemons,deleteUserPokemon,createUser, getUserByAuth0Id, assignPokemonToUser };

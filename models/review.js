@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
-      userId: DataTypes.INTEGER,
+      userId: DataTypes.STRING,
       userReview: DataTypes.STRING,
       restaurantId: DataTypes.INTEGER,
       rating: DataTypes.INTEGER,
