@@ -9,7 +9,8 @@ router.post("/", usersController.createUser);
 router.put("/:id", usersController.updateUserById);
 router.get("/:id/reviews", usersController.getUserReviews);
 router.get("/:id/pokemons", usersController.getUserPokemons);
-router.delete("/id/pokemons/:pokemonId", usersController.deleteUserPokemon);
+router.post("/:id/pokemons",usersController.assignPokemonToUser)
+router.delete("/:id/pokemons/:pokemonId", usersController.deleteUserPokemon);
 router.get('/auth/:auth0Id', usersController.getUserByAuth0Id)
 
 

@@ -80,7 +80,7 @@ const restaurantRoutes = require("./routes/restaurantRoutes.js");
 app.use("/users", userRoutes);
 app.use("/pokemons", pokemonsRoutes);
 app.use("/reviews", reviewRoutes);
-app.use("/restaurant", restaurantRoutes);
+app.use("/restaurants", restaurantRoutes);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
