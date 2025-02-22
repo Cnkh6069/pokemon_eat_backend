@@ -89,10 +89,17 @@ const updateUserById = async (req, res) => {
 const getUserPokemons = async (req, res) => {
   try {
     const { userId } = req.params;
-    const pokemons = await UserPokemon.findAll({
-      where: { userId },
-      include: [{ model: Pokemon }]
+    const user = await User.findOne({
+      where: { auth0Id: userId }
     });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const pokemons = await UserPokemon.findAll({
+      where: { userId: user.id},
+      include: [{ model: Pokemon, attributes: ['id','name','imgsrc']}]
+    });
+  ;
     res.status(200).json(pokemons);
   } catch (error) {
     console.error("Error fetching user pokemons:", error);
@@ -198,4 +205,7 @@ const assignPokemonToUser = async (req, res) => {
     res.status(500).json({ error: 'Failed to assign Pokemon to user' });
   }
 };
+
+
+
 module.exports = { getUserById, updateUserById, getUserReviews,getUserPokemons,deleteUserPokemon,createUser, getUserByAuth0Id, assignPokemonToUser };

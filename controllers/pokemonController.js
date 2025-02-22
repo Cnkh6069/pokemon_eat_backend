@@ -67,9 +67,29 @@ const deletePokemon = async (req, res) => {
   }
 };
 
+const getUserPokemons = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { UserPokemon } = require("../models");
+    
+    const userPokemons = await UserPokemon.findAll({
+      where: { userId }, // This will use auth0Id as userId
+      include: [{
+        model: Pokemon,
+        attributes: ['name', 'imgsrc', 'rarity']
+      }]
+    });
+
+    res.status(200).json(userPokemons);
+  } catch (error) {
+    console.error('Error fetching user pokemons:', error);
+    res.status(500).json({ error: "Failed to fetch user's Pokemon collection" });
+  }
+};
+
 module.exports = {
   getAllPokemon,
   getPaginatedPokemons,
   createNewPokemon,
-  deletePokemon,
+  deletePokemon, getUserPokemons
 };
